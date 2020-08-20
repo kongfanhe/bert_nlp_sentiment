@@ -1,0 +1,9 @@
+torch==1.5.1+cpu
+google_play_scraper==0.0.2.6
+matplotlib==3.1.2
+transformers==2.11.0
+tqdm==4.42.1
+pandas==0.25.3
+numpy==1.18.1
+seaborn==0.10.0
+scikit_learn==0.23.2
