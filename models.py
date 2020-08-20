@@ -3,11 +3,12 @@ import transformers
 from torch import nn
 
 
-class SentimentClassifier(nn.Module):
+class SentimentBert(nn.Module):
 
     def __init__(self, n_classes):
         super().__init__()
-        self.bert = transformers.BertModel.from_pretrained("./")
+        self.bert = get_model()
+        self.tokenizer = get_tokenizer()
         self.drop = nn.Dropout(p=0.3)
         self.linear = nn.Linear(self.bert.config.hidden_size, n_classes)
         self.soft_max = nn.Softmax(dim=1)
@@ -18,3 +19,14 @@ class SentimentClassifier(nn.Module):
         output = self.linear(output)
         output = self.soft_max(output)
         return output
+        
+    def get_model():
+        transformers.BertModel.from_pretrained("bert-base-cased").save_pretrained("./")
+        model = transformers.BertModel.from_pretrained("./")
+        return model
+    
+    def get_tokenizer():
+        transformers.BertModel.from_pretrained("bert-base-cased").save_pretrained("./")
+        tokenizer = transformers.BertTokenizer.from_pretrained("./")
+        return tokenizer
+        

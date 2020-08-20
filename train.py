@@ -11,7 +11,38 @@ from tqdm import tqdm
 import matplotlib.pyplot as plt
 from sklearn.metrics import confusion_matrix, classification_report
 import seaborn as sns
-from models import SentimentClassifier
+from models import SentimentBert
+import google_play_scraper as gps
+
+
+def download_reviews():
+    app_packages = [
+        'com.anydo',
+        'com.todoist',
+        'com.ticktick.task',
+        'com.habitrpg.android.habitica',
+        'com.oristats.habitbull',
+        'com.levor.liferpgtasks',
+        'com.habitnow',
+        'com.microsoft.todos',
+        'prox.lab.calclock',
+        'com.gmail.jmartindev.timetune',
+        'com.artfulagenda.app',
+        'com.tasks.android',
+        'com.appgenix.bizcal',
+        'com.appxy.planner'
+    ]
+    app_reviews = []
+    for a in app_packages:
+        print(a)
+        for score in range(1, 6):
+            for order in [gps.Sort.MOST_RELEVANT, gps.Sort.NEWEST]:
+                c = 200 if score == 3 else 100
+                rvs, _ = gps.reviews(a, lang="en", country="us", sort=order, count=c, filter_score_with=score)
+                app_reviews.extend(rvs)
+    reviews_df = pd.DataFrame(app_reviews)
+    print(reviews_df.head())
+    reviews_df.to_csv("reviews.csv", index=None, header=True)
 
 
 class GPReviewDataset(torch_data.Dataset):
@@ -130,6 +161,7 @@ def main():
     reviews["sentiment"] = reviews.score.apply(to_sentiment)
 
     class_names = ['negative', 'neutral', 'positive']
+    model: SentimentBert = SentimentBert(len(class_names))
 
     max_len, batch_size, epochs = 160, 8, 20
 
@@ -145,7 +177,6 @@ def main():
     data_val_loader = create_data_loader(df_val, tokenizer, max_len, batch_size)
     data_test_loader = create_data_loader(df_test, tokenizer, max_len, batch_size)
 
-    model: SentimentClassifier = SentimentClassifier(len(class_names))
     model = model.to(device)
 
     d = next(iter(data_train_loader))
