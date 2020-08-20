@@ -1,1 +1,2 @@
-# bert_model_sentiment_analysis
+# NLP sentiment analysis with BERT
+

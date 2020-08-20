@@ -1,14 +1,3 @@
-"""
-    import transformers
-
-    transformers.BertTokenizer.from_pretrained("bert-base-cased").save_pretrained("./")
-    tokenizer = transformers.BertTokenizer.from_pretrained("./")
-
-    transformers.BertModel.from_pretrained("bert-base-cased").save_pretrained("./")
-    model = transformers.BertModel.from_pretrained("./")
-
-
-"""
 
 import transformers
 import pandas as pd
@@ -22,9 +11,7 @@ from tqdm import tqdm
 import matplotlib.pyplot as plt
 from sklearn.metrics import confusion_matrix, classification_report
 import seaborn as sns
-
-
-random_seed = 42
+from models import SentimentClassifier
 
 
 class GPReviewDataset(torch_data.Dataset):
@@ -62,23 +49,6 @@ def to_sentiment(score):
 def create_data_loader(df, tokenizer, max_len, batch_size):
     ds = GPReviewDataset(df.content.to_numpy(), df.sentiment.to_numpy(), tokenizer, max_len)
     return torch_data.DataLoader(ds, batch_size=batch_size, num_workers=0)
-
-
-class SentimentClassifier(nn.Module):
-
-    def __init__(self, n_classes):
-        super().__init__()
-        self.bert = transformers.BertModel.from_pretrained("./")
-        self.drop = nn.Dropout(p=0.3)
-        self.linear = nn.Linear(self.bert.config.hidden_size, n_classes)
-        self.soft_max = nn.Softmax(dim=1)
-
-    def forward(self, input_ids, attention_mask):
-        _, output = self.bert(input_ids=input_ids, attention_mask=attention_mask)
-        output = self.drop(output)
-        output = self.linear(output)
-        output = self.soft_max(output)
-        return output
 
 
 def train_epoch(model: nn.Module, data_loader, loss_fn, optimizer, device, scheduler, n_examples):
@@ -168,8 +138,8 @@ def main():
 
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
-    df_train, df_test = train_test_split(reviews, test_size=0.6, random_state=random_seed)
-    df_val, df_test = train_test_split(df_test, test_size=0.5, random_state=random_seed)
+    df_train, df_test = train_test_split(reviews, test_size=0.6, random_state=0)
+    df_val, df_test = train_test_split(df_test, test_size=0.5, random_state=0)
 
     data_train_loader = create_data_loader(df_train, tokenizer, max_len, batch_size)
     data_val_loader = create_data_loader(df_val, tokenizer, max_len, batch_size)

@@ -46,6 +46,7 @@ def download_models():
     transformers.BertTokenizer.from_pretrained("bert-base-cased").save_pretrained("./")
     transformers.BertModel.from_pretrained("bert-base-cased").save_pretrained("./")
 
+
 if __name__ == "__main__":
     download_models()
     download_reviews()
