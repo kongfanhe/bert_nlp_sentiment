@@ -5,6 +5,7 @@ log.txt
 classification_report.txt
 confusion_matrix.png
 learning_curve.png
+example_prediction.txt
 /.idea
 /bert_base
 /__pycache__
