@@ -1,3 +1,10 @@
-pytorch_model.bin
+saved_model.bin
 reviews.csv
+startPy_36.bat
+log.txt
+classification_report.txt
+confusion_matrix.png
+learning_curve.png
 /.idea
+/bert_base
+/__pycache__

@@ -1,41 +1,16 @@
 
-import torch.utils.data as torch_data
 import google_play_scraper as gps
 from sklearn.model_selection import train_test_split
+import pandas as pd
+import os
+from tqdm import tqdm
+import torch.utils.data as torch_data
 
 
-classes = ['negative', 'neutral', 'positive']
+classes = ["negative", "neutral", "positive"]
 
 
-def download_reviews():
-    app_packages = [
-        'com.anydo',
-        'com.todoist',
-        'com.ticktick.task',
-        'com.habitrpg.android.habitica',
-        'com.oristats.habitbull',
-        'com.levor.liferpgtasks',
-        'com.habitnow',
-        'com.microsoft.todos',
-        'prox.lab.calclock',
-        'com.gmail.jmartindev.timetune',
-        'com.artfulagenda.app',
-        'com.tasks.android',
-        'com.appgenix.bizcal',
-        'com.appxy.planner'
-    ]
-    reviews = []
-    for a in app_packages:
-        for score in range(1, 6):
-            for order in [gps.Sort.MOST_RELEVANT, gps.Sort.NEWEST]:
-                c = 200 if score == 3 else 100
-                rvs, _ = gps.reviews(a, lang="en", country="us", sort=order, count=c, filter_score_with=score)
-                reviews.extend(rvs)
-    reviews_df = pd.DataFrame(reviews)
-    reviews_df.to_csv("reviews.csv", index=None, header=True)
-
-
-def to_sentiment(score):
+def score_to_sentiment(score):
     score = int(score)
     if score <= 2:
         return 0
@@ -45,40 +20,59 @@ def to_sentiment(score):
         return 2
 
 
-def create_data_loader(df, tokenizer, max_len, batch_size):
-    ds = Dataset(df.content.to_numpy(), df.sentiment.to_numpy(), tokenizer, max_len)
-    return torch_data.DataLoader(ds, batch_size=batch_size, num_workers=0)
+def download_reviews(file):
+    app_ids = [
+        "com.spotify.music", "us.zoom.videomeetings", "com.instagram.android",
+        "com.alphainventor.filemanager", "com.facebook.lite", "com.whatsapp",
+        "com.netflix.mediaclient", "com.paypal.android.p2pmobile"]
+    reviews = []
+    for a in tqdm(app_ids):
+        for score in range(1, 6):
+            for order in [gps.Sort.MOST_RELEVANT, gps.Sort.NEWEST]:
+                c = 200 if score == 3 else 100
+                r, _ = gps.reviews(a, lang="en", country="us", sort=order, count=c, filter_score_with=score)
+                reviews.extend(r)
+    reviews = pd.DataFrame(reviews)
+    reviews = pd.concat([reviews["score"], reviews["content"]], axis=1)
+    reviews.to_csv(file, index=None, header=True)
+    return reviews
 
 
-def get_data(tokenizer, max_len, batch_size):
-    download_reviews()
-    reviews = pd.read_csv("reviews.csv", encoding='utf-8')
-    reviews["sentiment"] = reviews.score.apply(to_sentiment)
-    df_train, df_test = train_test_split(reviews, test_size=0.6, random_state=0)
-    df_val, df_test = train_test_split(df_test, test_size=0.5, random_state=0)
-    tr_loader = create_data_loader(df_train, tokenizer, max_len, batch_size)
-    va_loader = create_data_loader(df_val, tokenizer, max_len, batch_size)
-    te_loader = create_data_loader(df_test, tokenizer, max_len, batch_size)
-    return tr_loader, va_loader, te_loader
+def get_review_data(data_file, batch_size, num_data=None):
+    if not os.path.exists(data_file):
+        download_reviews(data_file)
+    reviews = pd.read_csv(data_file, encoding="utf-8")
+    reviews["class"] = reviews["score"].apply(score_to_sentiment)
+    reviews = reviews.sample(frac=1, random_state=0)
+    if num_data is not None:
+        reviews = reviews.iloc[:num_data, :]
+    df_train, _test = train_test_split(reviews, train_size=0.8, random_state=0)
+    df_val, df_test = train_test_split(_test, test_size=0.5, random_state=0)
+    data_tr = torch_data.DataLoader(Dataset(df_train), batch_size=batch_size, num_workers=0)
+    data_va = torch_data.DataLoader(Dataset(df_val), batch_size=batch_size, num_workers=0)
+    data_te = torch_data.DataLoader(Dataset(df_test), batch_size=batch_size, num_workers=0)
+    return data_tr, data_va, data_te
 
 
 class Dataset(torch_data.Dataset):
 
-    def __init__(self, reviews, target, tokenizer, max_len):
-        self.reviews = reviews
-        self.target = target
-        self.tokenizer = tokenizer
-        self.max_len = max_len
+    def __init__(self, df):
+        self.data = df
 
     def __len__(self):
-        return len(self.reviews)
+        return len(self.data)
 
     def __getitem__(self, n):
-        review = str(self.reviews[n])
-        encoding = self.tokenizer.encode_plus(
-            review, max_length=self.max_len, add_special_tokens=True, pad_to_max_length=True,
-            return_attention_mask=True, return_token_type_ids=False, return_tensors="pt")
-        inputs = encoding["input_ids"].flatten()
-        mask = encoding["attention_mask"].flatten()
-        targets = torch.tensor(self.target[n], dtype=torch.long)
-        return {"text": review, "input_ids": inputs, "attention_mask": mask, "targets": targets}
+        review = self.data.iloc[n, :].to_dict()
+        return review
+
+
+def main():
+    data_tr, data_va, data_te = get_review_data("reviews.csv", batch_size=2, num_data=20)
+    for d in data_tr:
+        print(d)
+    print(len(data_tr), len(data_va), len(data_te))
+
+
+if __name__ == "__main__":
+    main()

@@ -2,6 +2,7 @@
 import transformers
 from torch import nn
 import torch
+import os
 
 
 def get_device(gpu):
@@ -10,29 +11,43 @@ def get_device(gpu):
     return torch.device("cpu")
 
 
-def get_bert_tokenizer():
-    transformers.BertModel.from_pretrained("bert-base-cased").save_pretrained("./")
-    tokenizer = transformers.BertTokenizer.from_pretrained("./")
+def get_bert_tokenizer(save_dir):
+    exist = True
+    for f in ["vocab.txt", "special_tokens_map.json", "tokenizer_config.json"]:
+        exist = exist and os.path.exists(os.path.join(save_dir, f))
+    if exist:
+        tokenizer = transformers.BertTokenizer.from_pretrained(save_dir)
+    else:
+        tokenizer = transformers.BertTokenizer.from_pretrained("bert-base-cased")
+        tokenizer.save_pretrained(save_dir)
     return tokenizer
 
 
-def get_bert_model():
-    transformers.BertModel.from_pretrained("bert-base-cased").save_pretrained("./")
-    bert_model = transformers.BertModel.from_pretrained("./")
-    return bert_model
+def get_bert_base(save_dir):
+    exist = True
+    for f in ["pytorch_model.bin", "config.json"]:
+        exist = exist and os.path.exists(os.path.join(save_dir, f))
+    if exist:
+        model = transformers.BertModel.from_pretrained(save_dir)
+    else:
+        model = transformers.BertModel.from_pretrained("bert-base-cased")
+        model.save_pretrained(save_dir)
+    return model
 
 
 class BertClassifier(nn.Module):
 
-    def __init__(self, n_classes, gpu=-1):
+    def __init__(self, n_classes, bert_base_dir, max_len, gpu=-1):
         super().__init__()
-        self.bert = get_bert_model()
+        self.max_len = max_len
+        self.cross_entropy_loss = nn.CrossEntropyLoss()
+        self.bert = get_bert_base(bert_base_dir)
+        self.tokenizer = get_bert_tokenizer(bert_base_dir)
         self.drop = nn.Dropout(p=0.3)
         self.linear = nn.Linear(self.bert.config.hidden_size, n_classes)
         self.soft_max = nn.Softmax(dim=1)
-        self.cross_entropy_loss = nn.CrossEntropyLoss()
         self.device = get_device(gpu)
-        self.to(device)
+        self.to(self.device)
     
     def load_from_file(self, file):
         state = torch.load(file, map_location=self.device)
@@ -41,45 +56,40 @@ class BertClassifier(nn.Module):
     def save_to_file(self, file):
         torch.save(self.state_dict(), file)
 
-    def forward(self, input_ids, attention_mask):
-        input_ids = input_ids.to(device)
-        attention_mask = attention_mask.to(device)
-        _, output = self.bert(input_ids=input_ids, attention_mask=attention_mask)
-        output = self.drop(output)
-        output = self.linear(output)
-        output = self.soft_max(output)
-        return output
+    def tokenize(self, texts):
+        input_ids = []
+        attention_mask = []
+        for text in texts:
+            encoding = self.tokenizer.encode_plus(
+                text, max_length=self.max_len, add_special_tokens=True,
+                pad_to_max_length=True, return_attention_mask=True,
+                return_token_type_ids=False, return_tensors="pt")
+            input_ids.append(encoding["input_ids"].flatten())
+            attention_mask.append(encoding["attention_mask"].flatten())
+        input_ids = torch.stack(input_ids)
+        attention_mask = torch.stack(attention_mask)
+        return input_ids, attention_mask
+
+    def forward(self, texts):
+        input_ids, attention_mask = self.tokenize(texts)
+        input_ids = input_ids.to(self.device)
+        attention_mask = attention_mask.to(self.device)
+        _, outputs = self.bert(input_ids=input_ids, attention_mask=attention_mask)
+        outputs = self.drop(outputs)
+        outputs = self.linear(outputs)
+        outputs = self.soft_max(outputs)
+        return outputs
     
-    def loss_fn(self, outputs, targets):
-        return self.cross_entropy_loss(outputs, targets)
-        
-    def evaluate(self, data):
-        self.eval()
-        losses = []
-        rights = 0
-        with torch.no_grad():
-            for d in data:
-                targets = d["targets"]
-                outputs = self.forward(d["input_ids"], d["attention_mask"])
-                _, preds = torch.max(outputs, dim=1)
-                _loss = self.loss_fn(outputs, targets)
-                rights += torch.sum(preds == targets)
-                losses.append(_loss.item())
-        accuracy, loss = rights.double().item() / len(data), np.mean(losses)
-        return accuracy, loss
+    def loss_fn(self, texts, targets):
+        outputs = self.forward(texts)
+        targets = targets.to(self.device)
+        loss = self.cross_entropy_loss(outputs, targets)
+        preds = torch.argmax(outputs, dim=1)
+        n_true = torch.sum(preds == targets)
+        acc = torch.true_divide(n_true, outputs.size(0))
+        return loss, acc
 
-    def predict(self, data):
-        self.eval()
-        texts, preds, probs, trues = [], [], [], []
-        with torch.no_grad():
-            for d in data:
-                outputs = self.forward(d["input_ids"], d["attention_mask"])
-                texts.extend(d["text"])
-                preds.extend(torch.max(outputs, dim=1)[1])
-                probs.extend(outputs)
-                trues.extend(d["targets"])
-            preds = torch.stack(preds)
-            probs = torch.stack(probs)
-            trues = torch.stack(trues)
-        return texts, preds, probs, trues
-
+    def predict(self, texts):
+        outputs = self.forward(texts)
+        preds = torch.argmax(outputs, dim=1)
+        return preds
