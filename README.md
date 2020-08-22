@@ -40,7 +40,7 @@ and the review score as the output, and we translate the review scroe into three
 |Needs to give you the option of adding pictures when note taking. If it had this option would be ... | neutral|
 |Awesome tracker yet it seems overpriced in my country way more more than the typical range of $5 ... | neutral|
 |Does not show dates of bookings as it used to detect from emails | negative|
-|Accounts bugs. Microsoft seriously needs to straighten out their convoluted accounts system. I se... | positive|
+|Been using this app for years, This app called itself business calendar but now includes popups w... | positive|
 |I actually loooooove the app and use it to organise my life but it has now stopped updating as a ... | positive|
 
 ## Model performance evaluation
