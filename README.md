@@ -42,7 +42,7 @@ We used [goole-play-scraper](https://pypi.org/project/google-play-scraper/) to f
 
 1. The learning curve:
 
-    [learning_curve.png](https://wx4.sinaimg.cn/mw690/008b8Ivhgy1ghzooizlclj30hs0dcq3c.jpg)
+    ![learning_curve.png](https://wx4.sinaimg.cn/mw690/008b8Ivhgy1ghzooizlclj30hs0dcq3c.jpg)
 
 2. Test predictions:
     |content|sentiment|
@@ -67,5 +67,5 @@ We used [goole-play-scraper](https://pypi.org/project/google-play-scraper/) to f
 
 4. Confusion Matrix:
 
-    [confusion_matrix.png](https://wx3.sinaimg.cn/mw690/008b8Ivhgy1ghzooey6okj30hs0dcjro.jpg)
-    
+    ![confusion_matrix.png](https://wx3.sinaimg.cn/mw690/008b8Ivhgy1ghzooey6okj30hs0dcjro.jpg)
+
