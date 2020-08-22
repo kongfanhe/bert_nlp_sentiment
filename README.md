@@ -1,7 +1,9 @@
 # NLP sentiment analysis with BERT model
 
 ## Introduction
-This repo demonstrate the use of [BERT](https://github.com/google-research/bert) model for sentiment analysis. We use Goole Play Store app review data to train the model, i.e. the review content is the input, and the review score is the output. And we translate the review scroe into three sentiment categories:
+This repo demonstrate the use of [BERT](https://github.com/google-research/bert) model for sentiment analysis. 
+We use Goole Play Store app review data to train the model. We use the review content as the input, 
+and the review score as the output, and we translate the review scroe into three sentiment categories:
 
 |review score| sentiment|
 |---|---|
@@ -22,7 +24,8 @@ This repo demonstrate the use of [BERT](https://github.com/google-research/bert)
     ```bash
         python train.py
     ```
-    This command will download the review data, the BERT model and the BERT tokenizer. So please keep the Internet connection.
+    This command will download the review data, the BERT model and the BERT tokenizer. 
+    So please keep the Internet connection.
 
 4. Once we have saved the weight file **"saved_weight.bin"**, we can run
     ```bash
@@ -43,7 +46,8 @@ This repo demonstrate the use of [BERT](https://github.com/google-research/bert)
 ## Model performance evaluation
 * The Learning Curve
 ![learning_curve.png](https://wx4.sinaimg.cn/mw690/008b8Ivhgy1ghzq0h9xrcj30hs0dcjsl.jpg)
-The model has overfitted on the training dataset. This is expected because we have only collected ~10k review records (for DEMO) and 12 epochs is too many.
+The model has overfitted on the training dataset. This is expected because 
+we have only collected ~10k review records (for DEMO) and 12 epochs is too many.
 
 * The Cofusion Matix
 ![confusion_matrix.png](https://wx4.sinaimg.cn/mw690/008b8Ivhgy1ghzq0cowxbj30hs0dcdg8.jpg)
@@ -61,5 +65,7 @@ It shows the neutral cases are more difficult to predict.
     Again, neutral cases has lowest poerformance. 
 
 ## Acknowledge:
-We have used [huggingface](https://github.com/huggingface/transformers) as the BERT interface. We have used [google-play-scraper](https://pypi.org/project/google-play-scraper/) to download review data. Thanks to these projects.
+We have used [huggingface](https://github.com/huggingface/transformers) as the BERT interface. 
+We have used [google-play-scraper](https://pypi.org/project/google-play-scraper/) to download review data. 
+Thanks to these projects.
 
