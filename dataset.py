@@ -22,9 +22,11 @@ def score_to_sentiment(score):
 
 def download_reviews(file):
     app_ids = [
-        "com.spotify.music", "us.zoom.videomeetings", "com.instagram.android",
-        "com.alphainventor.filemanager", "com.facebook.lite", "com.whatsapp",
-        "com.netflix.mediaclient", "com.paypal.android.p2pmobile"]
+        'com.anydo', 'com.todoist', 'com.ticktick.task',
+        'com.habitrpg.android.habitica', 'com.oristats.habitbull',
+        'com.levor.liferpgtasks', 'com.habitnow', 'com.microsoft.todos', 
+        'prox.lab.calclock', 'com.gmail.jmartindev.timetune', 'com.artfulagenda.app', 
+        'com.tasks.android', 'com.appgenix.bizcal', 'com.appxy.planner']
     reviews = []
     for a in tqdm(app_ids):
         for score in range(1, 6):
@@ -43,6 +45,7 @@ def get_review_data(data_file, batch_size, num_data=None):
         download_reviews(data_file)
     reviews = pd.read_csv(data_file, encoding="utf-8")
     reviews["class"] = reviews["score"].apply(score_to_sentiment)
+    reviews = pd.concat([reviews["class"], reviews["content"]], axis=1)
     reviews = reviews.sample(frac=1, random_state=0)
     if num_data is not None:
         reviews = reviews.iloc[:num_data, :]
