@@ -63,9 +63,6 @@ and the review score as the output, and we translate the review scroe into three
     |negative|0.75|0.82|0.78|481|
     |neutral|0.67|0.59|0.63|440|
     |positive|0.82|0.84|0.83|558|
-    |accuracy|||0.76|1479|
-    |macro avg|0.75|0.75|0.75|1479|
-    |weighted avg|0.75|0.76|0.75|1479|
     
     Again the neutral case has lowest poerformance. 
 
