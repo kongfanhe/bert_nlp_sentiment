@@ -22,11 +22,9 @@ def score_to_sentiment(score):
 
 def download_reviews(file):
     app_ids = [
-        'com.anydo', 'com.todoist', 'com.ticktick.task',
-        'com.habitrpg.android.habitica', 'com.oristats.habitbull',
-        'com.levor.liferpgtasks', 'com.habitnow', 'com.microsoft.todos', 
-        'prox.lab.calclock', 'com.gmail.jmartindev.timetune', 'com.artfulagenda.app', 
-        'com.tasks.android', 'com.appgenix.bizcal', 'com.appxy.planner']
+        "com.spotify.music", "us.zoom.videomeetings", "com.instagram.android",
+        "com.alphainventor.filemanager", "com.facebook.lite", "com.whatsapp",
+        "com.netflix.mediaclient", "com.paypal.android.p2pmobile"]
     reviews = []
     for a in tqdm(app_ids):
         for score in range(1, 6):

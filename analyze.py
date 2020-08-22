@@ -49,7 +49,7 @@ def save_learning_curve(log_file):
     
 def save_predictions(texts, preds):
     file = "example_prediction.txt"
-    max_word = 50
+    max_word = 100
     open(file, "w").write("")
     for text, pred in zip(texts, preds):
         c = classes[pred]
