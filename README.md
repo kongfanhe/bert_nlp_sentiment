@@ -59,6 +59,7 @@ you can change the app ID list and number of reviews in the file **"dataset.py"*
 It shows the neutral cases are more difficult to predict.
 
 * The Classification Report
+
     ||precision|recall|f1-score|support|
     |---|---|---|---|---|
     |negative|0.75|0.82|0.78|481|
@@ -67,7 +68,8 @@ It shows the neutral cases are more difficult to predict.
     |accuracy|||0.76|1479|
     |macro avg|0.75|0.75|0.75|1479|
     |weighted avg|0.75|0.76|0.75|1479|
-    Again, neutral cases has lowest poerformance. 
+    
+    Again the neutral case has lowest poerformance. 
 
 ## Acknowledge:
 We have used [huggingface](https://github.com/huggingface/transformers) as the BERT interface. 
