@@ -57,7 +57,6 @@ and the review score as the output, and we translate the review scroe into three
     It shows the neutral cases are more difficult to predict.
 
 3. The Classification Report
-
     ||precision|recall|f1-score|support|
     |---|---|---|---|---|
     |negative|0.75|0.82|0.78|481|
